@@ -10,6 +10,7 @@ class Tabla:
     
     def llenar_tabla(self, registros):
         self.registros = registros
+        self.num_elementos = len(self.registros)
         
     def agregar_registro(self, registro):
         if self.num_elementos >= self.max_elem:
@@ -26,19 +27,20 @@ class Tabla:
         self.indice = indice
         return self.registros[self.indice]
 
-    def existe_registro(self, clave):
-        for registro in self.registros:
-            if registro.clave == clave:
-                return True
-        return False
-
 class TablaProductos(Tabla):
     def __init__(self):
+        super().__init__()
         self.formato_registro = {
             'Producto': '',
             'Descripcion': '',
             'CostoUnitario': ''
         }
+    
+    def existe_registro(self, clave):
+        for registro in self.registros:
+            if registro['Producto'] == clave:
+                return True
+        return False
 
 class TablaTablas(Tabla):
     def __init__(self):
@@ -48,6 +50,13 @@ class TablaTablas(Tabla):
             'LlaveTabla': '',
             'Informacion': ''
         }
+
+    def existe_registro(self, clave):
+        for registro in self.registros:
+            reg_clave = registro['ClaveTabla'] + registro['LlaveTabla']
+            if reg_clave == clave:
+                return True
+        return False
 
 
     
