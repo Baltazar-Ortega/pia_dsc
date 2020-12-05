@@ -77,10 +77,9 @@ def procesa_departamento():
             # print("\nCambio de departamento\n")
             break
         else:
-            procesa_producto(i_prod, id_dpt_con_lei)
+            procesa_producto(i_prod, id_dpt_con_proc)
             i_prod = i_prod + 1
             if fin_con == 1 and i_prod > tabla_productos.num_elementos:
-                # print("Ahora si sale")
                 break
             id_dpt_con_lei.departamento = reg_con[1]
             id_dpt_con_lei.planta = reg_con[0]
@@ -99,12 +98,12 @@ def procesa_departamento():
     # Escribir total del departamento
     # num_lin = MAX_LIN
 
-def calcular_reporte_almacen(producto, id_dpt_con_lei):
+def calcular_reporte_almacen(producto, id_dpt_con_proc):
     suma_consumos = 0
     while True:
         if reg_con[3] != 'RA' or reg_con[2] != producto['Producto'] or \
-            reg_con[1] != id_dpt_con_lei.departamento or \
-            reg_con[0] != id_dpt_con_lei.planta:
+            reg_con[1] != id_dpt_con_proc.departamento or \
+            reg_con[0] != id_dpt_con_proc.planta:
             break
         else:
             # print("Si es RA")
@@ -116,8 +115,8 @@ def calcular_reporte_almacen(producto, id_dpt_con_lei):
     if fin_dev == 0:
         while True:
             if reg_dev[2] != producto['Producto'] or \
-                reg_dev[1] != id_dpt_con_lei.departamento or \
-                reg_dev[0] != id_dpt_con_lei.planta:
+                reg_dev[1] != id_dpt_con_proc.departamento or \
+                reg_dev[0] != id_dpt_con_proc.planta:
                 break
             else:
                 suma_devoluciones = suma_devoluciones + int(reg_dev[3])
@@ -129,12 +128,12 @@ def calcular_reporte_almacen(producto, id_dpt_con_lei):
     print("Total de rep.alm: ", suma_consumos - suma_devoluciones)
     return suma_consumos - suma_devoluciones
 
-def calcular_reporte_produccion(producto, id_dpt_con_lei):
+def calcular_reporte_produccion(producto, id_dpt_con_proc):
     suma_consumos = 0
     while True:
         if reg_con[3] != 'RP' or reg_con[2] != producto['Producto'] or \
-            reg_con[1] != id_dpt_con_lei.departamento or \
-            reg_con[0] != id_dpt_con_lei.planta:
+            reg_con[1] != id_dpt_con_proc.departamento or \
+            reg_con[0] != id_dpt_con_proc.planta:
             break
         else:
             # print("Si es RP")
@@ -144,16 +143,15 @@ def calcular_reporte_produccion(producto, id_dpt_con_lei):
                 break
     return suma_consumos
 
-def procesa_producto(i_prod, id_dpt_con_lei):
+def procesa_producto(i_prod, id_dpt_con_proc):
     global acum_tot_dpt
     
-    
-
     acum_con_prod = AcumConProd()
 
     prod_actual = tabla_productos.obtener_registro(i_prod)
     if fin_con == 1:
         # print("Si existe el pd en bd, pero no hay pds en consumos")
+        # Terminó el archivo. Se quedó en P00001. Falta imprimir con 0 los otros
         construir_detalle(prod_actual, acum_con_prod, 0, 0, 0, 0, '   ')
         return
     # Variables para crear reporte diferencia
@@ -164,12 +162,11 @@ def procesa_producto(i_prod, id_dpt_con_lei):
     imp_rep_alm = 0
     imp_rep_produ = 0
     pd_id = reg_con[2]
-    # print('reg con el que trabajare: ', reg_con)
     if pd_id == prod_actual['Producto']:
         # Calcular Reporte Almacen
         # Recorrer consumos hasta dejar de encontrar RA
         termina_con_ra = False
-        suma_consumos = calcular_reporte_almacen(prod_actual, id_dpt_con_lei)
+        suma_consumos = calcular_reporte_almacen(prod_actual, id_dpt_con_proc)
         acum_con_prod.con_almacen = suma_consumos
         imp_rep_alm = acum_con_prod.con_almacen * prod_actual['CostoUnitario']
         if fin_con == 1:
@@ -178,11 +175,9 @@ def procesa_producto(i_prod, id_dpt_con_lei):
         # Calcular Reporte Produccion
         # Recorrer consumos hasta dejar de encontrar RP
         if not termina_con_ra:
-            suma_consumos = calcular_reporte_produccion(prod_actual, id_dpt_con_lei)
+            suma_consumos = calcular_reporte_produccion(prod_actual, id_dpt_con_proc)
             acum_con_prod.con_produccion = suma_consumos
             imp_rep_produ = acum_con_prod.con_produccion * prod_actual['CostoUnitario']
-            # if fin_con == 1:
-            #     print("Termino el archivo despues de calcular rep.prod")
 
         # Calcular Reporte Diferencia
         cons_dif = abs(acum_con_prod.con_almacen-acum_con_prod.con_produccion)
@@ -304,9 +299,9 @@ def procesar_registro(registro, formato):
 
 if __name__ == "__main__":
     # Abrir archivo de consumos
-    arch_con = open('tests/con_test.txt', 'r')
+    arch_con = open('tests/consumos.txt', 'r')
     # Abrir archivo de devoluciones
-    arch_dev = open('tests/dev_test.txt', 'r')
+    arch_dev = open('tests/devoluciones.txt', 'r')
     
     # Abrir Base de datos
     cursor = obtener_cursor()
