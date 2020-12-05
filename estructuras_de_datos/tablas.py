@@ -24,7 +24,7 @@ class Tabla:
                 print('Registro con formato incorrecto')
 
     def obtener_registro(self, indice):
-        self.indice = indice
+        self.indice = indice - 1
         return self.registros[self.indice]
 
 class TablaProductos(Tabla):

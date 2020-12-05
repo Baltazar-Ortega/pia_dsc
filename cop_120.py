@@ -40,79 +40,167 @@ def procesa_planta():
     id_pla_con_lei = IdPlaCon('lectura', reg_con[0])
     # Id.Pla.Con.Proc = Id.Pla.Con.Lei
     id_pla_con_proc = IdPlaCon('proceso', id_pla_con_lei.planta)
+    print(f"\n\t********** Planta actual: {id_pla_con_proc.planta} **********")
     # Obtener nombre de planta
     # Si en el registro cambia la planta, break
     while True:
         if id_pla_con_lei.planta != id_pla_con_proc.planta:
-            print('Cambio de planta')
+            # print('Cambio de planta')
             num_hoja = 0
             break
         else:
-            resultado = procesa_departamento()
-            if not resultado:
+            continuar = procesa_departamento()
+            if not continuar:
                 print("procesa_planta EOF")
                 return None
-            planta_actual = reg_con[0]
-            id_pla_con_lei.planta = planta_actual
-            print("Planta actual: ", id_pla_con_lei.planta)
+            id_pla_con_lei.planta = reg_con[0]
     num_lin = MAX_LIN
 
 def procesa_departamento():
-    print("Dpt actual: ", reg_con[1])
-    total_consumo_departamento = 0
-    # "Recorrer" productos en BD
-    for i in range(1, 4):
-        consumo_prod = procesa_producto(i)
-        total_consumo_departamento = total_consumo_departamento + \
-                                     consumo_prod
-    print("\tTotal de consumo del departamento: ", total_consumo_departamento, '\n')
-    if fin_con == 1:
-        return None
-    else:
-        return True
-
-
+    global acum_tot_dpt
     # Hacer el Id.Dpt.Con.Lei
     id_dpt_con_lei = IdDptCon('lectura', reg_con[0], reg_con[1])
     # Id.Dpt.Con.Proc = Id.Dpt.Con.Lei
     id_dpt_con_proc = IdDptCon('proceso', id_dpt_con_lei.planta,  
                                 id_dpt_con_lei.departamento)
-    print("Departamento actual: ", id_dpt_con_proc)
+    print("Dpt Actual: ", id_dpt_con_proc)
     # Obtener nombre de Departamento
     # Acum.Tot.Dpt = 0
     acum_tot_dpt = AcumTotDpt()
     # i_prod = 1
     i_prod = 1
     # Si id de lectura != id de proceso, y se recorrieron productos, break
-    
-
+    while True:
+        if id_dpt_con_lei.departamento != id_dpt_con_proc.departamento and \
+            i_prod > tabla_productos.num_elementos:
+            # print("\nCambio de departamento\n")
+            break
+        else:
+            procesa_producto(i_prod)
+            if fin_con == 1:
+                break
+            i_prod = i_prod + 1
+            id_dpt_con_lei.departamento = reg_con[1]
+            
+    print(f"\tTotal de consumo del departamento '{id_dpt_con_proc}'")
+    print(f"Almacen-> Importe: {acum_tot_dpt.imp_alm} DifAFavor: {acum_tot_dpt.dif_fav_alm}")
+    print(f"Produccion-> Importe: {acum_tot_dpt.imp_prod} DifAFavor: {acum_tot_dpt.dif_fav_prod} ")
+    print("-"*150 + "\n")
+    if fin_con == 1:
+        return None
+    else:
+        return True
     # Construir total del departamento
     # Si num_lin + 6 > MAX_LIN, encabezado
     # num_lin + 1
     # Escribir total del departamento
     # num_lin = MAX_LIN
-    
-def procesa_producto(i_prod):
-    global reg_con, arch_con, fin_con
-    total_consumo = 0
-    id_hv = IdCon('lectura', HV['pt'], HV['dpt'], HV['p'], HV['cvep']).id
-    cambia_producto_en_registro = False
-    while not cambia_producto_en_registro:
-        print("V.consumo reg_con actual: ", reg_con[4])
-        total_consumo = total_consumo + int(reg_con[4])
 
-        id_lei = lee_consumo()
-        if id_lei.id == id_hv:
+def calcular_reporte_almacen(producto):
+    suma_consumos = 0
+    while True:
+        if reg_con[3] != 'RA' or reg_con[2] != producto['Producto']:
+            # print("No es RA o es otro producto")
             break
+        else:
+            # print("Si es RA")
+            suma_consumos = suma_consumos + int(reg_con[4])
+            lee_consumo()
+            if fin_con == 1:
+                # print("fin_con==1; alm.reg_con actual: ", reg_con)
+                # if reg_con[3] == 'RA' or reg_con[2] == producto['Producto']:
+                #     print("rep.alm Entra a ultimo if")
+                #     suma_consumos = suma_consumos + int(reg_con[4])
+                #     print("Despuessumaconsumosalmacen: ", suma_consumos)
+                break
+    return suma_consumos
 
-        # Convertir 'P00001' a i
-        match_obj = re.search('[\d]+', reg_con[2])
-        num_prod = int(match_obj.group())
-        # print("num_prod sig.registro: ", num_prod)
-        if num_prod != i_prod:
-            cambia_producto_en_registro = True
-    print(f"Total consumo de producto {i_prod}: ", total_consumo, '\n')
-    return total_consumo
+def calcular_reporte_produccion(producto):
+    suma_consumos = 0
+    while True:
+        if reg_con[3] != 'RP' or reg_con[2] != producto['Producto']:
+            # print("No es RP o es otro producto")
+            break
+        else:
+            # print("Si es RP")
+            suma_consumos = suma_consumos + int(reg_con[4])
+            lee_consumo()
+            if fin_con == 1:
+                break
+    return suma_consumos
+
+def procesa_producto(i_prod):
+    global acum_tot_dpt
+    acum_con_prod = AcumConProd()
+    # Variables para crear reporte diferencia
+    cons_dif = 0 
+    imp_dif = 0 
+    a_favor = ''
+    ######################
+    imp_rep_alm = 0
+    imp_rep_produ = 0
+    pd_id = reg_con[2]
+    # print('reg con el que trabajare: ', reg_con)
+    prod_actual = tabla_productos.obtener_registro(i_prod) 
+    if pd_id == prod_actual['Producto']:
+        # Calcular Reporte Almacen
+        # Recorrer consumos hasta dejar de encontrar RA
+        termina_con_ra = False
+        suma_consumos = calcular_reporte_almacen(prod_actual)
+        acum_con_prod.con_almacen = suma_consumos
+        imp_rep_alm = acum_con_prod.con_almacen * prod_actual['CostoUnitario']
+        if fin_con == 1:
+            # print("Terminó el archivo despues de calcular rep.alm")
+            termina_con_ra = True
+        # Calcular Reporte Produccion
+        # Recorrer consumos hasta dejar de encontrar RP
+        if not termina_con_ra:
+            suma_consumos = calcular_reporte_produccion(prod_actual)
+            acum_con_prod.con_produccion = suma_consumos
+            imp_rep_produ = acum_con_prod.con_produccion * prod_actual['CostoUnitario']
+            # if fin_con == 1:
+            #     print("Termino el archivo despues de calcular rep.prod")
+
+        # Calcular Reporte Diferencia
+        cons_dif = abs(acum_con_prod.con_almacen-acum_con_prod.con_produccion)
+        imp_dif = cons_dif*prod_actual['CostoUnitario']
+        if acum_con_prod.con_almacen > acum_con_prod.con_produccion:
+            a_favor = 'ALMACEN'
+        elif acum_con_prod.con_almacen < acum_con_prod.con_produccion:
+            a_favor = 'PRODUCCION'
+        elif acum_con_prod.con_almacen == acum_con_prod.con_produccion:
+            a_favor = ''
+        # Construir detalle
+        construir_detalle(prod_actual, acum_con_prod, imp_rep_alm, 
+                          imp_rep_produ, cons_dif, imp_dif, a_favor)
+    else:
+        if not tabla_productos.existe_registro(reg_con[2]):
+            # Abortar
+            print("\n\tEl producto no existe en la tabla Productos\n")
+            print("\nAbortar")
+            sys.exit(0)
+        else:
+            # Cuando reg_con, por ej. pasó de P00001 a P00003
+            # Construir detalle de blancos y ceros
+            print("\nSi existe el producto, pero no hay pds en consumos")
+            construir_detalle(prod_actual, acum_con_prod, 0, 0, 0, 0, '   ')
+
+    acum_tot_dpt.imp_alm = acum_tot_dpt.imp_alm + imp_rep_alm
+    acum_tot_dpt.imp_prod = acum_tot_dpt.imp_prod + imp_rep_produ
+    if a_favor == 'ALMACEN':
+        acum_tot_dpt.dif_fav_alm = acum_tot_dpt.dif_fav_alm + imp_dif
+    elif a_favor == 'PRODUCCION':
+        acum_tot_dpt.dif_fav_prod = acum_tot_dpt.dif_fav_prod + imp_dif
+    
+    
+def construir_detalle(producto, acum_con_prod, imp_rep_alm, 
+                      imp_rep_produ, cons_dif, imp_dif, a_favor):
+    cve_prod = producto['Producto']
+    descripcion = producto['Descripcion']
+    print(f'\n{cve_prod} {descripcion}: Rep.Alm (Consumo: {acum_con_prod.con_almacen}, importe: {imp_rep_alm}) \
+    Rep.Produ (Consumo: {acum_con_prod.con_produccion}, importe: {imp_rep_produ}) \
+    Dif / Reps (Consumo: {cons_dif}, Importe: {imp_dif}, a favor: {a_favor}) \n \
+    ')
 
 def lee_consumo():
     global reg_con, fin_con
@@ -193,7 +281,7 @@ def procesar_registro(registro, formato):
 
 if __name__ == "__main__":
     # Abrir archivo de consumos
-    arch_con = open('consumos_test_3.txt', 'r')
+    arch_con = open('tests/consumos_test.txt', 'r')
     # Abrir archivo de devoluciones
     arch_dev = open('devoluciones.txt', 'r')
     
@@ -215,18 +303,23 @@ if __name__ == "__main__":
     fin_con = 0
     fin_dev = 0
     num_hoja = 0
+    acum_tot_dpt = AcumTotDpt()
     # Pintar encabezado
     # Leer consumo
     reg_con = arch_con.readline().rstrip().split(' ')
     # Leer devolucion
     reg_dev = arch_dev.readline().rstrip().split(' ')
 
+    ###### Pruebas
+
+    ######
+
     # Si fin_con NO es = 1, entonces procesa_planta
-    # while True:
-    #     if fin_con == 1:
-    #         break
-    #     else:
-    #         procesa_planta()
+    while True:
+        if fin_con == 1:
+            break
+        else:
+            procesa_planta()
 
     # # Si SI es 1, cerrar archivos y reporte
     arch_con.close()

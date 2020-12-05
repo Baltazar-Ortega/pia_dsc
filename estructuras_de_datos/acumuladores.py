@@ -16,6 +16,5 @@ class AcumTotDpt(Acumulador):
         self.imp_prod = imp_prod
         self.dif_fav_alm = dif_fav_alm
         self.dif_fav_prod = dif_fav_prod
-        self.generar_valor({imp_alm, imp_prod, dif_fav_alm, dif_fav_prod})
 
 
