@@ -39,7 +39,7 @@ class TablaProductos(Tabla):
     def existe_registro(self, clave):
         for registro in self.registros:
             if registro['Producto'] == clave:
-                return True
+                return registro
         return False
 
 class TablaTablas(Tabla):
@@ -52,10 +52,10 @@ class TablaTablas(Tabla):
         }
 
     def existe_registro(self, clave):
-        for registro in self.registros:
+        for indice, registro in enumerate(self.registros, 1):
             reg_clave = registro['ClaveTabla'] + registro['LlaveTabla']
             if reg_clave == clave:
-                return True
+                return indice
         return False
 
 
