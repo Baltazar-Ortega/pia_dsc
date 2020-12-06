@@ -29,8 +29,10 @@
 import re
 import sys
 
+from fpdf import FPDF
 from estructuras_de_datos.identidades import IdPlaCon, IdDptCon, IdCon, IdDev
 from estructuras_de_datos.acumuladores import AcumConProd, AcumTotDpt
+from reporte.funciones_reporte import encabezado, construir_detalle, imprimir_linea
 from base_de_datos.conexion import obtener_cursor
 from funciones_auxiliares import procesar_registro, procesar_registros, mal_clasificado, crear_tabla
 
@@ -66,9 +68,9 @@ def procesa_departamento():
     # Id.Dpt.Con.Proc = Id.Dpt.Con.Lei
     id_dpt_con_proc = IdDptCon('proceso', id_dpt_con_lei.planta,  
                                 id_dpt_con_lei.departamento)
+    # Obtener nombre de Departamento
     nombre_dpt = obtener_nombre('departamento', id_dpt_con_proc)
     print(f"Nombre dpt Actual: {nombre_dpt} \n")
-    # Obtener nombre de Departamento
     # Acum.Tot.Dpt = 0
     acum_tot_dpt = AcumTotDpt()
     # i_prod = 1
@@ -156,7 +158,7 @@ def procesa_producto(i_prod, id_dpt_con_proc):
     if fin_con == 1:
         # print("Si existe el pd en bd, pero no hay pds en consumos")
         # Terminó el archivo. Se quedó en P00001. Falta imprimir con 0 los otros
-        construir_detalle(prod_actual, acum_con_prod, 0, 0, 0, 0, '   ')
+        construir_detalle_consola(prod_actual, acum_con_prod, 0, 0, 0, 0, '   ')
         return
     # Variables para crear reporte diferencia
     cons_dif = 0 
@@ -191,7 +193,7 @@ def procesa_producto(i_prod, id_dpt_con_proc):
         elif acum_con_prod.con_almacen == acum_con_prod.con_produccion:
             a_favor = ''
         # Construir detalle
-        construir_detalle(prod_actual, acum_con_prod, imp_rep_alm, 
+        construir_detalle_consola(prod_actual, acum_con_prod, imp_rep_alm, 
                           imp_rep_produ, cons_dif, imp_dif, a_favor)
     else:
         if not tabla_productos.existe_registro(reg_con[2]):
@@ -203,7 +205,7 @@ def procesa_producto(i_prod, id_dpt_con_proc):
             # Cuando reg_con, por ej. pasó de P00001 a P00003
             # Construir detalle de blancos y ceros
             # print("\nELSE.Si existe el producto, pero no hay pds en consumos")
-            construir_detalle(prod_actual, acum_con_prod, 0, 0, 0, 0, '   ')
+            construir_detalle_consola(prod_actual, acum_con_prod, 0, 0, 0, 0, '   ')
 
     acum_tot_dpt.imp_alm = acum_tot_dpt.imp_alm + imp_rep_alm
     acum_tot_dpt.imp_prod = acum_tot_dpt.imp_prod + imp_rep_produ
@@ -213,7 +215,7 @@ def procesa_producto(i_prod, id_dpt_con_proc):
         acum_tot_dpt.dif_fav_prod = acum_tot_dpt.dif_fav_prod + imp_dif
     
     
-def construir_detalle(producto, acum_con_prod, imp_rep_alm, 
+def construir_detalle_consola(producto, acum_con_prod, imp_rep_alm, 
                       imp_rep_produ, cons_dif, imp_dif, a_favor):
     cve_prod = producto['Producto']
     descripcion = producto['Descripcion']
@@ -287,16 +289,19 @@ if __name__ == "__main__":
     arch_con = open('tests/consumos.txt', 'r')
     # Abrir archivo de devoluciones
     arch_dev = open('tests/devoluciones.txt', 'r')
-    
     # Abrir Base de datos
     cursor = obtener_cursor()
     tabla_productos = crear_tabla(cursor, 'Productos')
     tabla_tablas = crear_tabla(cursor, 'Tablas')
 
-
     # Abrir reporte
     num_lin = 0
     MAX_LIN = 88
+    MAX_COL = 114
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font('Courier', '', 8)
+
     # Inicializacion de variables
     HV = {
         'pt': 'PT9',
@@ -315,7 +320,12 @@ if __name__ == "__main__":
     reg_dev = arch_dev.readline().rstrip().split(' ')
 
     ###### Pruebas
-
+    fecha = {'dia':'20', 'mes':'11', 'anio':'1998'}
+    encabezado(pdf, fecha, 'PT1', 'Monterrey', 'DPT001', 'Articulos oficina', 45)
+    miproducto = {'Producto':'P00001', 'Descripcion':'Vaso de vidrio', 'CostoUnitario':20}
+    gran = 987654321
+    resultado_prod = construir_detalle(miproducto, AcumConProd(), gran, gran, gran, gran, 'ALMACEN')
+    imprimir_linea(pdf, resultado_prod, 11)
     ######
 
     # Si fin_con NO es = 1, entonces procesa_planta
@@ -328,3 +338,5 @@ if __name__ == "__main__":
     # # Si SI es 1, cerrar archivos y reporte
     arch_con.close()
     arch_dev.close()
+
+    pdf.output('reporte_final.pdf', 'F')
