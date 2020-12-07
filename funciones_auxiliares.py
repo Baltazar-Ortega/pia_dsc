@@ -13,7 +13,6 @@ def mal_clasificado(id_ant, id_lei):
     if id_lei.id < id_ant.id:
         return True
     elif id_ant.id == id_lei.id:
-        # Son iguales. Bien ordenado.
         return False
     else:
         return False
@@ -22,10 +21,11 @@ def crear_tabla(cursor, nombre_tabla):
     cursor.execute(f'SELECT * FROM "{nombre_tabla}"')
     registros = cursor.fetchall()
     tabla = None
-    if nombre_tabla == 'Productos' or nombre_tabla == 'ProductosCaso3':
+    if nombre_tabla == 'Productos':
         tabla = TablaProductos()
     else:
         tabla = TablaTablas()
-    registros_formateados = procesar_registros(registros, tabla.formato_registro)
+    registros_formateados = procesar_registros(registros, 
+                                               tabla.formato_registro)
     tabla.llenar_tabla(registros_formateados)
     return tabla

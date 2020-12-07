@@ -4,7 +4,7 @@ class Tabla:
     def __init__(self):
         self.indice = 1
         self.num_elementos = 0
-        self.max_elem = 32
+        self.max_elem = 100
         self.registros = []
         self.formato_registro = None
     
@@ -19,11 +19,10 @@ class Tabla:
             if registro.keys() == self.formato_registro.keys():
                 self.registros.append(registro)
                 self.num_elementos = self.num_elementos + 1
-                # print('Registro insertado')
             else:
                 print('Registro con formato incorrecto')
 
-    def obtener_registro(self, indice):
+    def obtener_registro_por_indice(self, indice):
         self.indice = indice - 1
         return self.registros[self.indice]
 
@@ -35,12 +34,18 @@ class TablaProductos(Tabla):
             'Descripcion': '',
             'CostoUnitario': ''
         }
-    
-    def existe_registro(self, clave):
+
+    def obtener_registro(self, clave):
         for registro in self.registros:
             if registro['Producto'] == clave:
                 return registro
         return False
+    
+    def existe_registro(self, clave):
+        for registro in self.registros:
+            if registro['Producto'] == clave:
+                return 1
+        return 0
 
 class TablaTablas(Tabla):
     def __init__(self):
@@ -51,24 +56,16 @@ class TablaTablas(Tabla):
             'Informacion': ''
         }
 
+    def obtener_registro(self, clave):
+        for indice, registro in enumerate(self.registros, 1):
+            reg_clave = registro['ClaveTabla'] + registro['LlaveTabla']
+            if reg_clave == clave:
+                return registro
+        return 0
+
     def existe_registro(self, clave):
         for indice, registro in enumerate(self.registros, 1):
             reg_clave = registro['ClaveTabla'] + registro['LlaveTabla']
             if reg_clave == clave:
-                return indice
-        return False
-
-
-    
-    
-
-# Ejemplo
-# miregistro_tablas = {
-#     'ClaveTabla': 'T04',
-#     'LlaveTabla': 'PT1',
-#     'Informacion': 'Queretaro'
-# }
-
-# tabla_tablas = TablaTablas()
-
-# tabla_tablas.agregar_registro(miregistro_tablas)
+                return 1
+        return 0

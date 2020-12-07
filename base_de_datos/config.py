@@ -1,6 +1,7 @@
 from configparser import ConfigParser
 
-def configuracion(nombre_archivo='base_de_datos/bd.ini', seccion='postgresql'):
+def configuracion(nombre_archivo='base_de_datos/bd.ini', 
+                  seccion='postgresql'):
     parser = ConfigParser()
     parser.read(nombre_archivo)
     params_conexion = {}
