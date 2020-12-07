@@ -26,7 +26,7 @@ MAX_LINEAS = 88
 def imprimir_lineas_blanco(pdf, lineas_ya_impresas):
     # print("....**entra imprimir lineas blanco")
     # lineas_blanco = MAX_LINEAS - lineas_ya_impresas
-    for num_linea in range(lineas_ya_impresas + 1, MAX_LINEAS + 1):
+    for num_linea in range(lineas_ya_impresas, MAX_LINEAS + 1):
         imprimir_linea(pdf, '', num_linea)
 
 def imprimir_tot_dpt(pdf, num_linea, dpt_clave, dpt_nombre, acum_tot_dpt):
@@ -39,12 +39,12 @@ def imprimir_tot_dpt(pdf, num_linea, dpt_clave, dpt_nombre, acum_tot_dpt):
         formato_prod_num(acum_tot_dpt.imp_prod) + (' '*4)+ \
         'DIFERENCIA A FAVOR ' + formato_prod_num(acum_tot_dpt.dif_fav_prod) + (' '*48)
     if len(linea_cve_nom) == len(linea_almacen) == len(linea_produccion) == MAX_COLUMNAS:
-        imprimir_linea(pdf, linea_cve_nom, num_linea + 1)
-        imprimir_linea(pdf, '', num_linea + 2)
-        imprimir_linea(pdf, linea_almacen, num_linea + 3)
-        imprimir_linea(pdf, '', num_linea + 4)
-        imprimir_linea(pdf, linea_produccion, num_linea + 5)
-        imprimir_linea(pdf, '', num_linea + 6)
+        imprimir_linea(pdf, linea_cve_nom, num_linea)
+        imprimir_linea(pdf, '', num_linea + 1)
+        imprimir_linea(pdf, linea_almacen, num_linea + 2)
+        imprimir_linea(pdf, '', num_linea + 3)
+        imprimir_linea(pdf, linea_produccion, num_linea + 4)
+        imprimir_linea(pdf, '', num_linea + 5)
     else:
         print("Formato incorrecto")
 

@@ -93,7 +93,7 @@ def procesa_departamento():
             
     # Construir total del departamento
     # Si num_lin + 6 > MAX_LIN, imprimir_encabezado
-    imprimir_linea(pdf, '', num_lin + 1)
+    imprimir_linea(pdf, '', num_lin)
     num_lin = num_lin + 1
 
     espacio_para_total = num_lin + 6
@@ -162,14 +162,14 @@ def procesa_producto(i_prod, id_dpt_con_proc):
     if fin_con == 1:
         # # Si existe el pd en bd, pero no hay pds en consumos
         # Terminó el archivo. Se quedó en P00001. Falta imprimir con 0 los otros
-        if (num_lin + 1) > MAX_LIN:
+        if num_lin > MAX_LIN:
             plt_nom = obtener_nombre('planta', id_dpt_con_proc)
             dpt_nom = obtener_nombre('departamento', id_dpt_con_proc)
             # imprimir_lineas_blanco(pdf, num_lin + 1)
             encabezado(pdf, fecha, id_dpt_con_proc.planta, plt_nom, 
                     id_dpt_con_proc.departamento, dpt_nom)
         detalle = construir_detalle(prod_actual, acum_con_prod, 0, 0, 0, 0, '   ')
-        imprimir_linea(pdf, detalle, num_lin + 1)
+        imprimir_linea(pdf, detalle, num_lin)
         num_lin = num_lin + 1
         return
     # Variables para crear reporte diferencia
@@ -206,7 +206,7 @@ def procesa_producto(i_prod, id_dpt_con_proc):
         # Construir detalle
         detalle = construir_detalle(prod_actual, acum_con_prod, imp_rep_alm, 
                           imp_rep_produ, cons_dif, imp_dif, a_favor)
-        imprimir_linea(pdf, detalle, num_lin + 1)
+        imprimir_linea(pdf, detalle, num_lin)
     else:
         if not tabla_productos.existe_registro(reg_con[2]):
             # Abortar
@@ -217,7 +217,7 @@ def procesa_producto(i_prod, id_dpt_con_proc):
             # Cuando reg_con, por ej. pasó de P00001 a P00003
             # Construir detalle de blancos y ceros
             detalle = construir_detalle(prod_actual, acum_con_prod, 0, 0, 0, 0, '   ')
-            imprimir_linea(pdf, detalle, num_lin + 1)
+            imprimir_linea(pdf, detalle, num_lin)
 
     acum_tot_dpt.imp_alm = acum_tot_dpt.imp_alm + imp_rep_alm
     acum_tot_dpt.imp_prod = acum_tot_dpt.imp_prod + imp_rep_produ
@@ -226,7 +226,7 @@ def procesa_producto(i_prod, id_dpt_con_proc):
     elif a_favor == 'PRODUCCION':
         acum_tot_dpt.dif_fav_prod = acum_tot_dpt.dif_fav_prod + imp_dif
 
-    espacio_para_total = num_lin + 2 
+    espacio_para_total = num_lin + 1
     if espacio_para_total > MAX_LIN:
         plt_nom = obtener_nombre('planta', id_dpt_con_proc)
         dpt_nom = obtener_nombre('departamento', id_dpt_con_proc)
@@ -241,7 +241,7 @@ def encabezado(pdf, fecha, plt_cve, plt_nom, dpt_clave, dpt_nom):
     global num_hoja, num_lin
     num_hoja = num_hoja + 1
     imprimir_encabezado(pdf, NOMBRE_PROGRAMA, fecha, plt_cve, plt_nom, dpt_clave, dpt_nom, num_hoja)
-    num_lin = 10
+    num_lin = 11
 
 
 def lee_consumo():

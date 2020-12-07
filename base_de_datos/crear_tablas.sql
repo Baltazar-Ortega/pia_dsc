@@ -109,8 +109,15 @@ INSERT INTO "ProductosCaso3"("Producto", "Descripcion", "CostoUnitario") VALUES
  ('P00069', 'Pluma 3', 35),
  ('P00070', 'Pluma 1', 15),
  ('P00071', 'Pluma 2', 5),
- ('P00072', 'Pluma 3', 35)
+ ('P00072', 'Pluma 3', 35),
+ ('P00073', 'Pluma 3', 35)
 ;
 
 
-
+-- ('P00073', 'Pluma 2', 5),
+--  ('P00074', 'Pluma 3', 35),
+--  ('P00075', 'Pluma 1', 15),
+--  ('P00076', 'Pluma 2', 5),
+--  ('P00077', 'Pluma 3', 35),
+--  ('P00078', 'Pluma 3', 35),
+--  ('P00079', 'Pluma 3', 35);
