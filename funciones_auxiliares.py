@@ -14,7 +14,7 @@ def mal_clasificado(id_ant, id_lei):
         return True
     elif id_ant.id == id_lei.id:
         # Son iguales. Bien ordenado.
-        return None
+        return False
     else:
         return False
 
@@ -22,7 +22,7 @@ def crear_tabla(cursor, nombre_tabla):
     cursor.execute(f'SELECT * FROM "{nombre_tabla}"')
     registros = cursor.fetchall()
     tabla = None
-    if nombre_tabla == 'Productos':
+    if nombre_tabla == 'Productos' or nombre_tabla == 'ProductosCaso3':
         tabla = TablaProductos()
     else:
         tabla = TablaTablas()

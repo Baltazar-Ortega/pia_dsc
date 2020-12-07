@@ -13,14 +13,52 @@ import re
 #         self.con_produccion = con_produccion
 #         self.generar_valor([con_almacen, con_produccion])
 
+# class AcumTotDpt(Acumulador):
+#     def __init__(self, imp_alm=0, imp_prod=0, dif_fav_alm=0, dif_fav_prod=0):
+#         self.imp_alm = imp_alm
+#         self.imp_prod = imp_prod
+#         self.dif_fav_alm = dif_fav_alm
+#         self.dif_fav_prod = dif_fav_prod
 
-def encabezado(pdf, fecha, planta_cve, planta_nombre, dpt_clave, dpt_nombre, num_hoja):
+MAX_COLUMNAS = 114
+MAX_LINEAS = 88
+
+def imprimir_lineas_blanco(pdf, lineas_ya_impresas):
+    # print("....**entra imprimir lineas blanco")
+    # lineas_blanco = MAX_LINEAS - lineas_ya_impresas
+    for num_linea in range(lineas_ya_impresas + 1, MAX_LINEAS + 1):
+        imprimir_linea(pdf, '', num_linea)
+
+def imprimir_tot_dpt(pdf, num_linea, dpt_clave, dpt_nombre, acum_tot_dpt):
+    linea_cve_nom = 'TOTAL DEL DPTO. '+dpt_clave+(' '*2)+formato_dpt_nombre(dpt_nombre)+\
+        (' '*65)
+    linea_almacen = 'ALMACEN' + (' '*5) + 'IMPORTE' + (' '*2) + \
+        formato_prod_num(acum_tot_dpt.imp_alm) + (' '*4)+ \
+        'DIFERENCIA A FAVOR ' + formato_prod_num(acum_tot_dpt.dif_fav_alm) + (' '*48)
+    linea_produccion = 'PRODUCCION' + (' '*2) + 'IMPORTE' + (' '*2) + \
+        formato_prod_num(acum_tot_dpt.imp_prod) + (' '*4)+ \
+        'DIFERENCIA A FAVOR ' + formato_prod_num(acum_tot_dpt.dif_fav_prod) + (' '*48)
+    if len(linea_cve_nom) == len(linea_almacen) == len(linea_produccion) == MAX_COLUMNAS:
+        imprimir_linea(pdf, linea_cve_nom, num_linea + 1)
+        imprimir_linea(pdf, '', num_linea + 2)
+        imprimir_linea(pdf, linea_almacen, num_linea + 3)
+        imprimir_linea(pdf, '', num_linea + 4)
+        imprimir_linea(pdf, linea_produccion, num_linea + 5)
+        imprimir_linea(pdf, '', num_linea + 6)
+    else:
+        print("Formato incorrecto")
+
+
+def imprimir_encabezado(pdf, prog_nom, fecha, planta_cve, planta_nombre, dpt_clave, dpt_nombre, num_hoja):
     MAX_COLUMNAS = 114
     dia, mes, anio = formato_fecha(fecha)
-    fecha_imprimir = f"{dia} {mes} {anio}"
+    fecha_imprimir = f"{dia}  {mes} {anio}"
+    # print("fecha_imprimir: ", fecha_imprimir)
     # print("fecha_imprimir: ", len(fecha_imprimir))
-    primer_linea = 'P-xxxxxxxx' + (' '*16) + 'R E P O R T E   C O M P A R A T I V O' + \
+    primer_linea = f'P-  {prog_nom}' + (' '*16) + 'R E P O R T E   C O M P A R A T I V O' + \
     (' '*3) + 'D E' + (' '*3) + 'C O N S U M O S' + (' '*9) + 'FECHA  '+fecha_imprimir
+    # print("primer_linea: ", primer_linea)
+    # print("len primer_linea: ", len(primer_linea))
     linea_num_hoja = 'ACME      DIV. NOMINA' + (' '*15) + 'P L A N T A  '+planta_cve+\
     (' '*2)+ ('x'*7)+(' '*2)+formato_planta_nombre(planta_nombre)+(' '*23)+'HOJA  '+formato_num_hoja(num_hoja)
     linea_contabilidad = 'CONTABILIDAD'+(' '*102)
@@ -53,7 +91,7 @@ def encabezado(pdf, fecha, planta_cve, planta_nombre, dpt_clave, dpt_nombre, num
         # linea_detalle = construir_detalle(producto)
         # imprimir_linea(pdf, linea_detalle, 11)
     else:
-        print("Formato incorrecto")
+        print("Encabezado Formato incorrecto")
 
 def construir_detalle(producto, acum_con_prod, imp_rep_alm, 
                       imp_rep_produ, cons_dif, imp_dif, a_favor):
@@ -89,7 +127,7 @@ def formato_prod_num(num):
     elif len(str(num)) > 3:
         # Necesita una coma
         match = re.findall(r"[\d]{3}$", f'{num}')[0]
-        print(match)
+        # print(match)
         primeros_numeros = str(num).replace(match, '')
         num_completo = primeros_numeros + ',' + match 
         res = res + ('.'*(max_espacios-len(num_completo))) + num_completo
@@ -126,7 +164,6 @@ def formato_dpt_nombre(dpt_nombre):
     # print("len dpt_nombre formateado: ", len(res))
     return res
 
-
 def formato_num_hoja(num_hoja):
     # 4 caracteres
     len_num_hoja = len(str(num_hoja))
@@ -136,15 +173,19 @@ def formato_num_hoja(num_hoja):
     return res
 
 def formato_fecha(fecha):
-    dia = fecha['dia']
-    mes = ''
-    if len(fecha['dia']) < 2:
-        dia = '0' + fecha['dia']
-    if len(fecha['mes']) < 2:
-        mes = ' 0'+fecha['mes']
-    else:
-        mes = ' '+fecha['mes']
-    return dia, mes, fecha['anio']
+    anio = fecha[0:4]
+    mes = fecha[4:6]
+    dia = fecha[6:8]
+    return dia, mes, anio
+    # dia = fecha['dia']
+    # mes = ''
+    # if len(fecha['dia']) < 2:
+    #     dia = '0' + fecha['dia']
+    # if len(fecha['mes']) < 2:
+    #     mes = ' 0'+fecha['mes']
+    # else:
+    #     mes = ' '+fecha['mes']
+    # return dia, mes, fecha['anio']
 
 def generar_numero_linea(numero_linea, cantidad_espacios):
     return str(numero_linea) + (' '*cantidad_espacios)
@@ -166,24 +207,27 @@ def imprimir_linea(pdf, string_imprimir, numero_linea):
     pdf.cell(0, 3, linea_reporte, align='C', ln=1)
 
 # if __name__ == '__main__':
-#     MAX_COLUMNAS = 114
-#     MAX_LINEAS = 88
+#     # MAX_COLUMNAS = 114
+#     # MAX_LINEAS = 88
 #     pdf = FPDF()
 #     pdf.add_page()
 #     pdf.set_font('Courier', '', 8)
 
-#     fecha = {'dia':'20', 'mes':'11', 'anio':'1998'}
+#     acum_tot_dpt = AcumTotDpt()
+#     imprimir_tot_dpt(pdf, 5, 'DPT001', 'Articulos de construccion', acum_tot_dpt)
 
-#     encabezado(pdf, fecha, 'PT1', 'Monterrey', 'DPT001', 'Articulos oficina', 45)
+#     # fecha = {'dia':'20', 'mes':'11', 'anio':'1998'}
 
-#     producto = {'Producto':'P00001', 'Descripcion':'Vaso de vidrio', 'CostoUnitario':20}
-#     acum_con_prod = AcumConProd()
-#     gran = 321
-#     resultado = construir_detalle(producto, acum_con_prod, gran, gran, gran, gran, 'ALMACEN')
-#     print("Resultado de construir_detalle: ", resultado)
-#     print("Resultado de construir_detalle (len): ", len(resultado))
-#     imprimir_linea(pdf, resultado, 11)
-#     imprimir_linea(pdf, resultado, 12)
+#     # imprimir_encabezado(pdf, fecha, 'PT1', 'Monterrey', 'DPT001', 'Articulos oficina', 45)
+
+#     # producto = {'Producto':'P00001', 'Descripcion':'Vaso de vidrio', 'CostoUnitario':20}
+#     # acum_con_prod = AcumConProd()
+#     # gran = 321
+#     # resultado = construir_detalle(producto, acum_con_prod, gran, gran, gran, gran, 'ALMACEN')
+#     # print("Resultado de construir_detalle: ", resultado)
+#     # print("Resultado de construir_detalle (len): ", len(resultado))
+#     # imprimir_linea(pdf, resultado, 11)
+#     # imprimir_linea(pdf, resultado, 12)
 
 
 #     pdf.output('prueba.pdf', 'F')

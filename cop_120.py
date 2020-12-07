@@ -28,49 +28,51 @@
 
 import re
 import sys
+from datetime import datetime
 
 from fpdf import FPDF
 from estructuras_de_datos.identidades import IdPlaCon, IdDptCon, IdCon, IdDev
 from estructuras_de_datos.acumuladores import AcumConProd, AcumTotDpt
-from reporte.funciones_reporte import encabezado, construir_detalle, imprimir_linea
+from reporte.funciones_reporte import imprimir_encabezado, construir_detalle, imprimir_linea, imprimir_tot_dpt, imprimir_lineas_blanco
 from base_de_datos.conexion import obtener_cursor
 from funciones_auxiliares import procesar_registro, procesar_registros, mal_clasificado, crear_tabla
 
 def procesa_planta():
-    global num_lin
+    global num_lin, num_hoja
     # Hacer el Id.Pla.Con.Lei
     id_pla_con_lei = IdPlaCon('lectura', reg_con[0])
     # Id.Pla.Con.Proc = Id.Pla.Con.Lei
     id_pla_con_proc = IdPlaCon('proceso', id_pla_con_lei.planta)
+    # num_hoja = 0
+    num_hoja = 0
     # Obtener nombre de planta
     nombre_planta = obtener_nombre('planta', id_pla_con_proc)
 
-    print(f"\n\t********** Planta actual: {id_pla_con_proc.planta} {nombre_planta} **********")
     # Si en el registro cambia la planta, break
     while True:
         if id_pla_con_lei.planta != id_pla_con_proc.planta:
             # print('Cambio de planta')
-            num_hoja = 0
             break
         else:
             continuar = procesa_departamento()
             if not continuar:
-                print("procesa_planta EOF")
                 return None
             id_pla_con_lei.planta = reg_con[0]
     num_lin = MAX_LIN
-    print("___Salto de hoja___")
 
 def procesa_departamento():
-    global acum_tot_dpt
+    global acum_tot_dpt, num_lin
     # Hacer el Id.Dpt.Con.Lei
     id_dpt_con_lei = IdDptCon('lectura', reg_con[0], reg_con[1])
     # Id.Dpt.Con.Proc = Id.Dpt.Con.Lei
     id_dpt_con_proc = IdDptCon('proceso', id_dpt_con_lei.planta,  
                                 id_dpt_con_lei.departamento)
     # Obtener nombre de Departamento
-    nombre_dpt = obtener_nombre('departamento', id_dpt_con_proc)
-    print(f"Nombre dpt Actual: {nombre_dpt} \n")
+    dpt_nom = obtener_nombre('departamento', id_dpt_con_proc)
+    # print(f"Nombre dpt Actual: {dpt_nom} \n")
+    plt_nom = obtener_nombre('planta', id_dpt_con_proc)
+    encabezado(pdf, fecha, id_dpt_con_proc.planta, plt_nom, 
+                   id_dpt_con_proc.departamento, dpt_nom)
     # Acum.Tot.Dpt = 0
     acum_tot_dpt = AcumTotDpt()
     # i_prod = 1
@@ -80,7 +82,6 @@ def procesa_departamento():
         if (id_dpt_con_lei.departamento != id_dpt_con_proc.departamento or
             id_dpt_con_lei.planta != id_dpt_con_proc.planta) and \
             i_prod > tabla_productos.num_elementos:
-            # print("\nCambio de departamento\n")
             break
         else:
             procesa_producto(i_prod, id_dpt_con_proc)
@@ -90,19 +91,27 @@ def procesa_departamento():
             id_dpt_con_lei.departamento = reg_con[1]
             id_dpt_con_lei.planta = reg_con[0]
             
-    print(f"\tTotal de consumo del departamento '{id_dpt_con_proc}' {nombre_dpt} ")
-    print(f"Almacen-> Importe: {acum_tot_dpt.imp_alm} DifAFavor: {acum_tot_dpt.dif_fav_alm}")
-    print(f"Produccion-> Importe: {acum_tot_dpt.imp_prod} DifAFavor: {acum_tot_dpt.dif_fav_prod} ")
-    print("-"*150 + "\n")
+    # Construir total del departamento
+    # Si num_lin + 6 > MAX_LIN, imprimir_encabezado
+    imprimir_linea(pdf, '', num_lin + 1)
+    num_lin = num_lin + 1
+
+    espacio_para_total = num_lin + 6
+    if espacio_para_total > MAX_LIN:
+        imprimir_lineas_blanco(pdf, num_lin)
+        plt_nom = obtener_nombre('planta', id_dpt_con_proc)
+        encabezado(pdf, fecha, id_dpt_con_proc.planta, plt_nom, 
+                   id_dpt_con_proc.departamento, dpt_nom)
+    # Escribir total del departamento
+    imprimir_tot_dpt(pdf, num_lin, id_dpt_con_proc.departamento, dpt_nom, acum_tot_dpt)
+
+    # Salto de hoja
+    imprimir_lineas_blanco(pdf, num_lin + 6)
+    num_lin = MAX_LIN
     if fin_con == 1:
         return None
     else:
         return True
-    # Construir total del departamento
-    # Si num_lin + 6 > MAX_LIN, encabezado
-    # num_lin + 1
-    # Escribir total del departamento
-    # num_lin = MAX_LIN
 
 def calcular_reporte_almacen(producto, id_dpt_con_proc):
     suma_consumos = 0
@@ -112,7 +121,6 @@ def calcular_reporte_almacen(producto, id_dpt_con_proc):
             reg_con[0] != id_dpt_con_proc.planta:
             break
         else:
-            # print("Si es RA")
             suma_consumos = suma_consumos + int(reg_con[4])
             lee_consumo()
             if fin_con == 1:
@@ -129,9 +137,6 @@ def calcular_reporte_almacen(producto, id_dpt_con_proc):
                 lee_devolucion()
                 if fin_dev == 1:
                     break
-    # print("Suma consumos: ", suma_consumos)
-    # print("Suma devoluciones: ", suma_devoluciones)
-    # print("Total de rep.alm: ", suma_consumos - suma_devoluciones)
     return suma_consumos - suma_devoluciones
 
 def calcular_reporte_produccion(producto, id_dpt_con_proc):
@@ -142,7 +147,6 @@ def calcular_reporte_produccion(producto, id_dpt_con_proc):
             reg_con[0] != id_dpt_con_proc.planta:
             break
         else:
-            # print("Si es RP")
             suma_consumos = suma_consumos + int(reg_con[4])
             lee_consumo()
             if fin_con == 1:
@@ -150,21 +154,29 @@ def calcular_reporte_produccion(producto, id_dpt_con_proc):
     return suma_consumos
 
 def procesa_producto(i_prod, id_dpt_con_proc):
-    global acum_tot_dpt
-    
+    global acum_tot_dpt, num_lin
+    detalle = ''
     acum_con_prod = AcumConProd()
 
     prod_actual = tabla_productos.obtener_registro(i_prod)
     if fin_con == 1:
-        # print("Si existe el pd en bd, pero no hay pds en consumos")
+        # # Si existe el pd en bd, pero no hay pds en consumos
         # Terminó el archivo. Se quedó en P00001. Falta imprimir con 0 los otros
-        construir_detalle_consola(prod_actual, acum_con_prod, 0, 0, 0, 0, '   ')
+        if (num_lin + 1) > MAX_LIN:
+            plt_nom = obtener_nombre('planta', id_dpt_con_proc)
+            dpt_nom = obtener_nombre('departamento', id_dpt_con_proc)
+            # imprimir_lineas_blanco(pdf, num_lin + 1)
+            encabezado(pdf, fecha, id_dpt_con_proc.planta, plt_nom, 
+                    id_dpt_con_proc.departamento, dpt_nom)
+        detalle = construir_detalle(prod_actual, acum_con_prod, 0, 0, 0, 0, '   ')
+        imprimir_linea(pdf, detalle, num_lin + 1)
+        num_lin = num_lin + 1
         return
     # Variables para crear reporte diferencia
     cons_dif = 0 
     imp_dif = 0 
     a_favor = ''
-    # #####################
+
     imp_rep_alm = 0
     imp_rep_produ = 0
     pd_id = reg_con[2]
@@ -182,7 +194,6 @@ def procesa_producto(i_prod, id_dpt_con_proc):
         if not termina_con_ra:
             acum_con_prod.con_produccion = calcular_reporte_produccion(prod_actual, id_dpt_con_proc)
             imp_rep_produ = acum_con_prod.con_produccion * prod_actual['CostoUnitario']
-
         # Calcular Reporte Diferencia
         cons_dif = abs(acum_con_prod.con_almacen-acum_con_prod.con_produccion)
         imp_dif = cons_dif*prod_actual['CostoUnitario']
@@ -193,8 +204,9 @@ def procesa_producto(i_prod, id_dpt_con_proc):
         elif acum_con_prod.con_almacen == acum_con_prod.con_produccion:
             a_favor = ''
         # Construir detalle
-        construir_detalle_consola(prod_actual, acum_con_prod, imp_rep_alm, 
+        detalle = construir_detalle(prod_actual, acum_con_prod, imp_rep_alm, 
                           imp_rep_produ, cons_dif, imp_dif, a_favor)
+        imprimir_linea(pdf, detalle, num_lin + 1)
     else:
         if not tabla_productos.existe_registro(reg_con[2]):
             # Abortar
@@ -204,8 +216,8 @@ def procesa_producto(i_prod, id_dpt_con_proc):
         else:
             # Cuando reg_con, por ej. pasó de P00001 a P00003
             # Construir detalle de blancos y ceros
-            # print("\nELSE.Si existe el producto, pero no hay pds en consumos")
-            construir_detalle_consola(prod_actual, acum_con_prod, 0, 0, 0, 0, '   ')
+            detalle = construir_detalle(prod_actual, acum_con_prod, 0, 0, 0, 0, '   ')
+            imprimir_linea(pdf, detalle, num_lin + 1)
 
     acum_tot_dpt.imp_alm = acum_tot_dpt.imp_alm + imp_rep_alm
     acum_tot_dpt.imp_prod = acum_tot_dpt.imp_prod + imp_rep_produ
@@ -213,16 +225,24 @@ def procesa_producto(i_prod, id_dpt_con_proc):
         acum_tot_dpt.dif_fav_alm = acum_tot_dpt.dif_fav_alm + imp_dif
     elif a_favor == 'PRODUCCION':
         acum_tot_dpt.dif_fav_prod = acum_tot_dpt.dif_fav_prod + imp_dif
-    
-    
-def construir_detalle_consola(producto, acum_con_prod, imp_rep_alm, 
-                      imp_rep_produ, cons_dif, imp_dif, a_favor):
-    cve_prod = producto['Producto']
-    descripcion = producto['Descripcion']
-    print(f'\n----- {cve_prod} {descripcion}: Rep.Alm (Consumo: {acum_con_prod.con_almacen}, importe: {imp_rep_alm}) \
-    Rep.Produ (Consumo: {acum_con_prod.con_produccion}, importe: {imp_rep_produ}) \
-    Dif / Reps (Consumo: {cons_dif}, Importe: {imp_dif}, a favor: {a_favor}) ----- \n \
-    ')
+
+    espacio_para_total = num_lin + 2 
+    if espacio_para_total > MAX_LIN:
+        plt_nom = obtener_nombre('planta', id_dpt_con_proc)
+        dpt_nom = obtener_nombre('departamento', id_dpt_con_proc)
+        # imprimir_lineas_blanco(pdf, num_lin + 1)
+        encabezado(pdf, fecha, id_dpt_con_proc.planta, plt_nom, 
+                   id_dpt_con_proc.departamento, dpt_nom)
+        return
+    num_lin = num_lin + 1
+
+
+def encabezado(pdf, fecha, plt_cve, plt_nom, dpt_clave, dpt_nom):
+    global num_hoja, num_lin
+    num_hoja = num_hoja + 1
+    imprimir_encabezado(pdf, NOMBRE_PROGRAMA, fecha, plt_cve, plt_nom, dpt_clave, dpt_nom, num_hoja)
+    num_lin = 10
+
 
 def lee_consumo():
     global reg_con, fin_con
@@ -232,7 +252,7 @@ def lee_consumo():
     # Lee registro (Si FinCon, FinCon = 1)
     lin_arch = arch_con.readline()
     if lin_arch == '':
-        print("Final de arch consumos")
+        # print("Final de arch consumos")
         fin_con = 1
     else:
         reg_con = lin_arch.rstrip().split(' ')
@@ -255,7 +275,7 @@ def lee_devolucion():
     # Lee registro (Si FinDev, FinDev = 1)
     lin_arch = arch_dev.readline()
     if lin_arch == '':
-        print("Final de arch devoluciones")
+        # print("Final de arch devoluciones")
         fin_dev = 1
     else:
         reg_dev = lin_arch.rstrip().split(' ')
@@ -270,7 +290,6 @@ def lee_devolucion():
         sys.exit(0)
     return id_lei
 
-
 def obtener_nombre(campo, identidad):
     if campo == 'planta':
         clave = 'T04'+identidad.planta
@@ -283,21 +302,37 @@ def obtener_nombre(campo, identidad):
         encontrado = tabla_tablas.obtener_registro(indice)
         return encontrado['Informacion']
 
+def obtener_fecha():
+    clave = 'F01'
+    indice = tabla_tablas.existe_registro(clave)
+    if not indice:
+        return str(datetime.date(datetime.now())).replace('-', '')
+    else:
+        encontrado = tabla_tablas.obtener_registro(indice)
+        if len(encontrado['Informacion']) != 8:
+            return str(datetime.date(datetime.now())).replace('-', '')
+        else:
+            return encontrado['Informacion']
+
 if __name__ == "__main__":
     # Control
     # Abrir archivo de consumos
-    arch_con = open('tests/consumos.txt', 'r')
+    arch_con = open('tests/con_largo.txt', 'r')
     # Abrir archivo de devoluciones
-    arch_dev = open('tests/devoluciones.txt', 'r')
+    arch_dev = open('tests/dev_test.txt', 'r')
     # Abrir Base de datos
     cursor = obtener_cursor()
-    tabla_productos = crear_tabla(cursor, 'Productos')
+    tabla_productos = crear_tabla(cursor, 'ProductosCaso3')
     tabla_tablas = crear_tabla(cursor, 'Tablas')
 
     # Abrir reporte
     num_lin = 0
+    num_hoja = 0
+    NOMBRE_PROGRAMA = 'COP120'
     MAX_LIN = 88
     MAX_COL = 114
+    # Se debe obtener de la tabla "Tablas"
+    fecha = obtener_fecha()
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font('Courier', '', 8)
@@ -311,22 +346,11 @@ if __name__ == "__main__":
     }
     fin_con = 0
     fin_dev = 0
-    num_hoja = 0
     acum_tot_dpt = AcumTotDpt()
-    # Pintar encabezado
     # Leer consumo
     reg_con = arch_con.readline().rstrip().split(' ')
     # Leer devolucion
     reg_dev = arch_dev.readline().rstrip().split(' ')
-
-    ###### Pruebas
-    fecha = {'dia':'20', 'mes':'11', 'anio':'1998'}
-    encabezado(pdf, fecha, 'PT1', 'Monterrey', 'DPT001', 'Articulos oficina', 45)
-    miproducto = {'Producto':'P00001', 'Descripcion':'Vaso de vidrio', 'CostoUnitario':20}
-    gran = 987654321
-    resultado_prod = construir_detalle(miproducto, AcumConProd(), gran, gran, gran, gran, 'ALMACEN')
-    imprimir_linea(pdf, resultado_prod, 11)
-    ######
 
     # Si fin_con NO es = 1, entonces procesa_planta
     while True:
