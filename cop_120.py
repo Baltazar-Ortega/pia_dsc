@@ -44,7 +44,7 @@
 *                               retornada depende de nombre_tabla.   
 *
 * Proceso                       Función
-* control:                      Procesar corte.
+* control:                      Procesar programa COP120.
 * procesa_planta:               Procesar planta. Reiniciar numero de hoja.
 * procesa_departamento:         Procesar departamento. Imprimir total.
 * procesa_producto:             Procesar un producto. Imprimir detalle. 
@@ -114,6 +114,7 @@ def procesa_planta():
 
 def procesa_departamento():
     global acum_tot_dpt, num_lin
+    # Inicializacion de variables auxiliares
     dpt_nom = ''
     plt_nom = ''
     # Id.Dpt.Con.Proc = Id.Dpt.Con.Lei
@@ -147,7 +148,7 @@ def procesa_departamento():
     # Num.Lin + 1
     imprimir_linea(pdf, '', num_lin)
     num_lin = num_lin+1
-    # Si Num.Lin + 6 > MAX_LIN, imprimir_encabezado
+    # Si Num.Lin + 6 > MAX_LIN, imprimir encabezado
     espacio_necesario = 0
     espacio_necesario = num_lin+6
     if espacio_necesario > MAX_LIN:
@@ -171,7 +172,7 @@ def procesa_producto(i_prod, id_dpt_con_proc):
     # Con.Almacen(Acum) = 0
     # Con.Produccion(Acum) = 0
     acum_con_prod = AcumConProd()
-    # Inicializacion de variables
+    # Inicializacion de variables auxiliares
     detalle = ''
     plt_nom = ''
     dpt_nom = ''
@@ -183,16 +184,15 @@ def procesa_producto(i_prod, id_dpt_con_proc):
     cons_dif = 0 
     imp_dif = 0 
     a_favor = ''
-
+    # Obtener datos del producto actual
     prod_actual = tabla_productos.obtener_registro_por_indice(i_prod)
     if fin_con == 1:
-        # Si existe el pd en bd, pero no hay pds en consumos
+        # Si existe el prd en bd, pero no hay prds en consumos.
         # Terminó el archivo. Se quedó en P00001. 
-        # Falta imprimir con 0 los otros
+        # Falta imprimir con 0 los otros productos.
         if num_lin > MAX_LIN:
             plt_nom = obtener_nombre('planta', id_dpt_con_proc)
             dpt_nom = obtener_nombre('departamento', id_dpt_con_proc)
-            # imprimir_lineas_blanco(pdf, num_lin + 1)
             encabezado(pdf, fecha, id_dpt_con_proc.planta, plt_nom, 
                        id_dpt_con_proc.departamento, dpt_nom)
         detalle = construir_detalle(prod_actual, acum_con_prod, 0, 0, 0, 0, 
@@ -258,6 +258,8 @@ def procesa_producto(i_prod, id_dpt_con_proc):
     elif a_favor == 'PRODUCCION':
         acum_tot_dpt.dif_fav_prod = acum_tot_dpt.dif_fav_prod+imp_dif
 
+    # Si Num.Lin + 6 > MAX_LIN, imprimir encabezado,
+    # sino, Num.Lin + 1
     espacio_necesario = num_lin+1
     if espacio_necesario > MAX_LIN:
         plt_nom = obtener_nombre('planta', id_dpt_con_proc)
@@ -269,9 +271,12 @@ def procesa_producto(i_prod, id_dpt_con_proc):
 
 def encabezado(pdf, fecha, plt_cve, plt_nom, dpt_clave, dpt_nom):
     global num_hoja, num_lin
+    # Num.Hoja + 1
     num_hoja = num_hoja+1
+    # Escribir 10 líneas de encabezado
     imprimir_encabezado(pdf, NOMBRE_PROGRAMA, fecha, plt_cve, plt_nom, 
                         dpt_clave, dpt_nom, num_hoja)
+    # Num.Lin = 11
     num_lin = 11
 
 def lee_consumo():
@@ -293,7 +298,7 @@ def lee_consumo():
     else:
         id_lei = IdCon('lectura', reg_con[0], reg_con[1], reg_con[2], 
                        reg_con[3])
-    # Si Id.Lei <= Id.Ant entonces es archivo mal clasificado, y aborta
+    # Si Id.Lei <= Id.Ant entonces es archivo mal clasificado, aborta
     if mal_clasificado(id_ant, id_lei):
         print("\n\tArchivo 'consumos' mal clasificado")
         sys.exit(0)
@@ -316,12 +321,13 @@ def lee_devolucion():
         id_lei = IdDev('lectura', HV['pt'], HV['dpt'], HV['p'])
     else:
         id_lei = IdDev('lectura', reg_dev[0], reg_dev[1], reg_dev[2])
-    # Si Id.Lei <= Id.Ant entonces es archivo mal clasificado, y aborta
+    # Si Id.Lei <= Id.Ant entonces es archivo mal clasificado, aborta
     if mal_clasificado(id_ant, id_lei):
         print("\n\tArchivo 'devoluciones' mal clasificado")
         sys.exit(0)
 
 def calcular_reporte_almacen(producto, id_dpt_con_proc):
+    # suma_consumos se usa para acumular consumos
     suma_consumos = 0
     while True:
         if reg_con[3] != 'RA' or reg_con[2] != producto['Producto'] or \
@@ -333,6 +339,7 @@ def calcular_reporte_almacen(producto, id_dpt_con_proc):
             lee_consumo()
             if fin_con == 1:
                 break
+    # suma_devoluciones se usa para acumular devoluciones
     suma_devoluciones = 0
     if fin_dev == 0:
         while True:
@@ -348,6 +355,7 @@ def calcular_reporte_almacen(producto, id_dpt_con_proc):
     return suma_consumos-suma_devoluciones
 
 def calcular_reporte_produccion(producto, id_dpt_con_proc):
+    # suma_consumos se usa para acumular consumos
     suma_consumos = 0
     while True:
         if reg_con[3] != 'RP' or reg_con[2] != producto['Producto'] or \
@@ -362,6 +370,7 @@ def calcular_reporte_produccion(producto, id_dpt_con_proc):
     return suma_consumos
 
 def obtener_nombre(campo, identidad):
+    # exi servirá para determinar si existe el nombre en la BD.
     exi = 0
     if campo == 'planta':
         clave = 'T04'+identidad.planta
@@ -375,6 +384,7 @@ def obtener_nombre(campo, identidad):
         return encontrado['Informacion']
 
 def obtener_fecha():
+    # exi servirá para determinar si existe la fecha en la BD.
     exi = 0
     clave = 'F01'
     exi = tabla_tablas.existe_registro(clave)
@@ -387,8 +397,11 @@ def obtener_fecha():
         else:
             return encontrado['Informacion']
 
+# -*-*-*-
+"""
+* Funcion: Módulo Control
+"""
 if __name__ == "__main__":
-    ###### Control
     # Abrir archivo de consumos
     arch_con = open('tests/casos/caso1/consumos.txt', 'r')
     # Abrir archivo de devoluciones
@@ -398,6 +411,7 @@ if __name__ == "__main__":
     tabla_productos = crear_tabla(cursor, 'Productos')
     tabla_tablas = crear_tabla(cursor, 'Tablas')
     # Abrir reporte
+    # Inicializar variables de reporte
     num_lin = 0
     num_hoja = 0
     NOMBRE_PROGRAMA = 'COP120'
@@ -406,7 +420,7 @@ if __name__ == "__main__":
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font('Courier', '', 8)
-    # Inicializacion de variables
+    # Inicializacion de variables globales auxiliares
     HV = {
         'pt': 'PT9',
         'dpt': 'DPT999',

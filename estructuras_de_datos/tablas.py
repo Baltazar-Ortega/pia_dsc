@@ -38,12 +38,12 @@ class Tabla:
         else:
             if registro.keys() == self.formato_registro.keys():
                 self.registros.append(registro)
-                self.num_elementos = self.num_elementos + 1
+                self.num_elementos = self.num_elementos+1
             else:
                 print('Registro con formato incorrecto')
 
     def obtener_registro_por_indice(self, indice):
-        self.indice = indice - 1
+        self.indice = indice-1
         return self.registros[self.indice]
 
 class TablaProductos(Tabla):
@@ -78,14 +78,14 @@ class TablaTablas(Tabla):
 
     def obtener_registro(self, clave):
         for indice, registro in enumerate(self.registros, 1):
-            reg_clave = registro['ClaveTabla'] + registro['LlaveTabla']
+            reg_clave = registro['ClaveTabla']+registro['LlaveTabla']
             if reg_clave == clave:
                 return registro
         return 0
 
     def existe_registro(self, clave):
         for indice, registro in enumerate(self.registros, 1):
-            reg_clave = registro['ClaveTabla'] + registro['LlaveTabla']
+            reg_clave = registro['ClaveTabla']+registro['LlaveTabla']
             if reg_clave == clave:
                 return 1
         return 0
