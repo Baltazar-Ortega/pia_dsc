@@ -33,17 +33,12 @@ def imprimir_tot_dpt(pdf, num_linea, dpt_clave, dpt_nombre, acum_tot_dpt):
 
 def imprimir_encabezado(pdf, prog_nom, fecha, planta_cve, planta_nombre, 
                         dpt_clave, dpt_nombre, num_hoja):
-    MAX_COLUMNAS = 114
     dia, mes, anio = formato_fecha(fecha)
     fecha_imprimir = f"{dia}  {mes} {anio}"
-    # print("fecha_imprimir: ", fecha_imprimir)
-    # print("fecha_imprimir: ", len(fecha_imprimir))
     primer_linea = 'P-  '+prog_nom + (' '*16)+ \
                    'R E P O R T E   C O M P A R A T I V O'+ \
                     (' '*3)+'D E'+(' '*3)+'C O N S U M O S'+(' '*9)+ \
                     'FECHA  '+fecha_imprimir
-    # print("primer_linea: ", primer_linea)
-    # print("len primer_linea: ", len(primer_linea))
     linea_num_hoja = 'ACME      DIV. NOMINA'+(' '*15)+'P L A N T A  '+ \
                      planta_cve+(' '*2)+('x'*7)+(' '*2)+ \
                      formato_planta_nombre(planta_nombre)+(' '*23)+'HOJA  '+ \
@@ -94,66 +89,65 @@ def construir_detalle(producto, acum_con_prod, imp_rep_alm,
            f"{con_rep_produ} {imp_rep_produ}  {cons_dif} {imp_dif} {a_favor}"
 
 def formato_a_favor_de(a_favor):
-    # Necesito 10
+    car_necesarios = 10
     len_a_favor = len(a_favor)
-    espacios_antes = 10 - len_a_favor
-    res = (' '*espacios_antes) + a_favor
-    return res
+    espacios_antes = car_necesarios-len_a_favor
+    resultado = (' '*espacios_antes)+a_favor
+    return resultado
 
 def formato_prod_num(num):
-    # 11 espacios 
-    # 9 numeros max (2 comas cada 3)
     max_espacios = 11
-    res = ''
+    resultado = ''
     if len(str(num)) > 6:
         # Necesita dos comas
         match = re.findall(r"[\d]{6}$", f'{num}')[0]
         primeros_numeros = str(num).replace(match, '')
-        num_completo = primeros_numeros + ',' + match[0:3] + ',' + match[3:]
-        res = res + ('.'*(max_espacios-len(num_completo))) + num_completo
+        num_completo = primeros_numeros+','+match[0:3]+','+match[3:]
+        resultado = resultado+('.'*(max_espacios-len(num_completo)))+ \
+                    num_completo
     elif len(str(num)) > 3:
         # Necesita una coma
         match = re.findall(r"[\d]{3}$", f'{num}')[0]
-        # print(match)
         primeros_numeros = str(num).replace(match, '')
-        num_completo = primeros_numeros + ',' + match 
-        res = res + ('.'*(max_espacios-len(num_completo))) + num_completo
+        num_completo = primeros_numeros+','+match 
+        resultado = resultado+('.'*(max_espacios-len(num_completo)))+ \
+                    num_completo
     else:
         # No necesita comas
         len_num = len(str(num))
-        puntos_antes = max_espacios - len_num
-        res = ('.'*puntos_antes) + str(num)
-    return res
+        puntos_antes = max_espacios-len_num
+        resultado = ('.'*puntos_antes)+str(num)
+    return resultado
           
 def formato_prod_desc(descripcion):
-    # 20
+    car_necesarios = 20
     len_prod_desc = len(descripcion)
-    espacios_antes = 20 - len_prod_desc
-    res = (' '*espacios_antes) + descripcion
-    return res
+    espacios_antes = car_necesarios-len_prod_desc
+    resultado = (' '*espacios_antes)+descripcion
+    return resultado
 
 def formato_planta_nombre(planta_nombre):
     # Ej. planta_nombre = Queretaro
-    # Necesita 18 caracteres
+    car_necesarios = 18
     len_planta_nombre = len(planta_nombre)
-    espacios_antes = 18 - len_planta_nombre
+    espacios_antes = car_necesarios-len_planta_nombre
     res = (' '*espacios_antes)+planta_nombre
     return res
 
 def formato_dpt_nombre(dpt_nombre):
     # Ej. dpt_nombre = Articulos construccion
-    # Necesita 25 caracteres
+    car_necesarios = 25
     len_dpt_nombre = len(dpt_nombre)
-    espacios_antes = 25 - len_dpt_nombre
-    res = (' '*espacios_antes)+dpt_nombre
-    return res
+    espacios_antes = car_necesarios-len_dpt_nombre
+    resultado = (' '*espacios_antes)+dpt_nombre
+    return resultado
 
 def formato_num_hoja(num_hoja):
-    # 4 caracteres
+    car_necesarios = 4
     len_num_hoja = len(str(num_hoja))
-    espacios_antes = 4 - len_num_hoja
-    res = (' '*espacios_antes)+str(num_hoja)
-    return res
+    espacios_antes = car_necesarios-len_num_hoja
+    resultado = (' '*espacios_antes)+str(num_hoja)
+    return resultado
 
 def formato_fecha(fecha):
     anio = fecha[0:4]
@@ -162,19 +156,19 @@ def formato_fecha(fecha):
     return dia, mes, anio
 
 def generar_numero_linea(numero_linea, cantidad_espacios):
-    return str(numero_linea) + (' '*cantidad_espacios)
+    return str(numero_linea)+(' '*cantidad_espacios)
 
 def generar_linea_imprimir(string_imprimir, numero_linea):
     if not string_imprimir:
         if numero_linea > 9:
-            return generar_numero_linea(numero_linea, 115) + string_imprimir
+            return generar_numero_linea(numero_linea, 115)+string_imprimir
         else: 
-            return generar_numero_linea(numero_linea, 116) + string_imprimir
+            return generar_numero_linea(numero_linea, 116)+string_imprimir
     else:
         if numero_linea > 9:
-            return generar_numero_linea(numero_linea, 1) + string_imprimir
+            return generar_numero_linea(numero_linea, 1)+string_imprimir
         else:
-            return generar_numero_linea(numero_linea, 2) + string_imprimir
+            return generar_numero_linea(numero_linea, 2)+string_imprimir
     
 def imprimir_linea(pdf, string_imprimir, numero_linea):
     linea_reporte = generar_linea_imprimir(string_imprimir, numero_linea)

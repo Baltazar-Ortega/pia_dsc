@@ -7,23 +7,37 @@
 * Fecha:    8/12/2020
 """
 
-# -*-*-*- (Estos son ejemplos)
-"""Proceso         Función
-* procesar:        Procesar corte
-* terminar:        Cerrar ambiente y terminar programa
+# -*-*-*- 
+"""
+*  Proceso                         Función
+* control:                       Procesar corte.
+* procesa_planta:                Procesar planta. Reiniciar numero de hoja.
+* procesa_departamento:          Procesar departamento. Imprimir total.
+* procesa_producto:              Procesar un producto. Imprimir detalle. 
+* encabezado:                    Imprimir encabezado en reporte.
+* lee_consumo:                   Leer registro de archivo 'consumos'.
+* lee_devolucion:                Leer registro de archivo 'devoluciones'.
+* calcular_reporte_almacen:      Procesar consumos con clave 'RA'.
+*                                Procesar devoluciones.
+* calcular_reporte_produccion:   Procesar consumos con clave 'RP'.
+* obtener_nombre:                Obtener nombre de Planta o Departamento.
+*                                Si no lo tiene, se devuelve un string vacio. 
+* obtener_fecha:                 Obtener fecha de tablas si existe, sino, 
+*                                tomar la del sistema.
 """
 
 # -*-*-*-
 """
-* (1) Todas las variables deben tener valor inicial
-* (2) Utilizar .startswith() y .endswith() en lugar de usar slicing
-* (3) No comparar valores booleanos con '=='. Usar 'if'
-* (4) El límite de una línea es de 79 caracteres
-* (5) Los 'imports' de distintos modulos deben estar en líneas separadas
-* (f) Si una sentencia de 'import' necesita mas espacio, utilizar parentesis
+* (1) Todas las variables numéricas y de string deben tener valor inicial
+* (2) No comparar valores booleanos con '=='. Usar 'if'
+* (3) El límite de una línea es de 79 caracteres
+* (4) Los 'imports' de distintos modulos deben estar en líneas separadas
+* (5) Si una sentencia de 'import' necesita más espacio, utilizar paréntesis
 * (6) Cualquier sentencia 'return' donde no se tenga que retornar un
 *     valor, explícitamente debe retornar 'None'
-* (7) Añadir como última línea en el programa: # FIN DE PROGRAMA.
+* (7) Usar "\" para romper una operación en las líneas necesarias cuando no se
+*     cuente con el sufiente espacio para escribirla en una linea.
+* (8) Añadir como última línea en el programa: # FIN DE PROGRAMA.
 """
 
 import re
@@ -64,6 +78,8 @@ def procesa_planta():
 
 def procesa_departamento():
     global acum_tot_dpt, num_lin
+    dpt_nom = ''
+    plt_nom = ''
     # Id.Dpt.Con.Proc = Id.Dpt.Con.Lei
     id_dpt_con_lei = IdDptCon('lectura', reg_con[0], reg_con[1])
     id_dpt_con_proc = IdDptCon('proceso', id_dpt_con_lei.planta,  
@@ -147,7 +163,7 @@ def procesa_producto(i_prod, id_dpt_con_proc):
                                     '   ')
         imprimir_linea(pdf, detalle, num_lin)
         num_lin = num_lin+1
-        return
+        return None
 
     # ¿Producto(ID) == Producto(I)?
     pd_id = reg_con[2]
@@ -210,7 +226,6 @@ def procesa_producto(i_prod, id_dpt_con_proc):
     if espacio_necesario > MAX_LIN:
         plt_nom = obtener_nombre('planta', id_dpt_con_proc)
         dpt_nom = obtener_nombre('departamento', id_dpt_con_proc)
-        # imprimir_lineas_blanco(pdf, num_lin + 1)
         encabezado(pdf, fecha, id_dpt_con_proc.planta, plt_nom, 
                    id_dpt_con_proc.departamento, dpt_nom)
     else:
@@ -218,7 +233,7 @@ def procesa_producto(i_prod, id_dpt_con_proc):
 
 def encabezado(pdf, fecha, plt_cve, plt_nom, dpt_clave, dpt_nom):
     global num_hoja, num_lin
-    num_hoja = num_hoja + 1
+    num_hoja = num_hoja+1
     imprimir_encabezado(pdf, NOMBRE_PROGRAMA, fecha, plt_cve, plt_nom, 
                         dpt_clave, dpt_nom, num_hoja)
     num_lin = 11
@@ -226,6 +241,7 @@ def encabezado(pdf, fecha, plt_cve, plt_nom, dpt_clave, dpt_nom):
 def lee_consumo():
     global reg_con, fin_con
     # Id.Ant = Id.Lei
+    linea_archivo = ''
     id_lei = IdCon('lectura', reg_con[0], reg_con[1], reg_con[2], reg_con[3])
     id_ant = id_lei
     # Lee registro (Si FinCon, FinCon = 1)
@@ -252,6 +268,7 @@ def lee_devolucion():
     id_lei = IdDev('lectura', reg_dev[0], reg_dev[1], reg_dev[2])
     id_ant = id_lei
     # Lee registro (Si FinDev, FinDev = 1)
+    linea_archivo = ''
     linea_archivo = arch_dev.readline()
     if linea_archivo == '':
         # Final de archivo "devoluciones"
@@ -267,32 +284,6 @@ def lee_devolucion():
     if mal_clasificado(id_ant, id_lei):
         print("\n\tArchivo 'devoluciones' mal clasificado")
         sys.exit(0)
-
-#### Submodulos
-
-def obtener_nombre(campo, identidad):
-    if campo == 'planta':
-        clave = 'T04'+identidad.planta
-    elif campo == 'departamento':
-        clave = 'T05'+identidad.planta+identidad.departamento
-    exi = tabla_tablas.existe_registro(clave)
-    if exi == 0:
-        return ' '
-    elif exi == 1:
-        encontrado = tabla_tablas.obtener_registro(clave)
-        return encontrado['Informacion']
-
-def obtener_fecha():
-    clave = 'F01'
-    exi = tabla_tablas.existe_registro(clave)
-    if exi == 0:
-        return str(datetime.date(datetime.now())).replace('-', '')
-    elif exi == 1:
-        encontrado = tabla_tablas.obtener_registro(clave)
-        if len(encontrado['Informacion']) != 8:
-            return str(datetime.date(datetime.now())).replace('-', '')
-        else:
-            return encontrado['Informacion']
 
 def calcular_reporte_almacen(producto, id_dpt_con_proc):
     suma_consumos = 0
@@ -334,6 +325,32 @@ def calcular_reporte_produccion(producto, id_dpt_con_proc):
                 break
     return suma_consumos
 
+def obtener_nombre(campo, identidad):
+    exi = 0
+    if campo == 'planta':
+        clave = 'T04'+identidad.planta
+    elif campo == 'departamento':
+        clave = 'T05'+identidad.planta+identidad.departamento
+    exi = tabla_tablas.existe_registro(clave)
+    if exi == 0:
+        return ' '
+    elif exi == 1:
+        encontrado = tabla_tablas.obtener_registro(clave)
+        return encontrado['Informacion']
+
+def obtener_fecha():
+    exi = 0
+    clave = 'F01'
+    exi = tabla_tablas.existe_registro(clave)
+    if exi == 0:
+        return str(datetime.date(datetime.now())).replace('-', '')
+    elif exi == 1:
+        encontrado = tabla_tablas.obtener_registro(clave)
+        if len(encontrado['Informacion']) != 8:
+            return str(datetime.date(datetime.now())).replace('-', '')
+        else:
+            return encontrado['Informacion']
+
 if __name__ == "__main__":
     ###### Control
     # Abrir archivo de consumos
@@ -349,7 +366,6 @@ if __name__ == "__main__":
     num_hoja = 0
     NOMBRE_PROGRAMA = 'COP120'
     MAX_LIN = 88
-    MAX_COL = 114
     fecha = obtener_fecha()
     pdf = FPDF()
     pdf.add_page()
@@ -378,3 +394,5 @@ if __name__ == "__main__":
     arch_con.close()
     arch_dev.close()
     pdf.output('reporte_final.pdf', 'F')
+
+# FIN DE PROGRAMA.
