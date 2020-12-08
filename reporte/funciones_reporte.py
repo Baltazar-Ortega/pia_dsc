@@ -1,4 +1,51 @@
-import sys
+# -*-*-*-
+"""
+* Programa: funciones_reporte
+* Objetivo: Proveer funciones para manipular reporte
+* Autor:    FCFM. GOAB. Gutiérrez Ortega Alberto Baltazar
+* Fecha:    8/12/2020
+"""
+
+# -*-*-*- 
+"""
+* Import                   Funcion
+* Libreria
+* re                       Módulo de la libreria estandar de python que
+*                          sirve para trabajar con expresiones regulares.
+* 
+* Constantes               Funcion
+* MAX_COLUMNAS             Numero columnas maximas en la hoja de pdf.
+* MAX_LINEAS               Número de lineas maximas en la hoja de pdf.
+* 
+* Proceso                  Función
+* imprimir_lineas_blanco:  Imprimir cierta cantidad de lineas en blanco antes
+*                          de llegar al máximo.
+* imprimir_tot_dpt:        Imprimir el total de departamento.
+* imprimir_encabezado:     Imprimir encabezado.
+* construir_detalle:       Retorna string con el detalle de producto.
+* formato_a_favor_de:      Formato a string que indica la diferencia a favor.
+* formato_prod_num:        Formato a número para que tenga las comas 
+*                          necesarias si se necesita.
+* formato_prod_desc:       Formato a descripcion del producto para utilizar el 
+*                          espacio permitido.
+* formato_planta_nombre:   Formato al nombre de la planta para utilizar el 
+*                          espacio permitido.
+* formato_dpt_nombre:      Formato al nombre de departamento para utilizar el 
+*                          espacio permitido.
+* formato_num_hoja:        Formato al numero de hoja para utilizar el 
+*                          espacio permitido.
+* formato_fecha:           Obtener dia, mes y año de string con fecha.
+* generar_numero_linea:    Retorna string con el numero de linea y los 
+*                          espacios en blanco necesarios a la derecha.
+* generar_linea_imprimir:  Retorna string con formato listo para imprimir.
+* imprimir_linea:          Imprime linea en reporte.
+"""
+
+# -*-*-*-
+"""
+* (1) Utilizar instrucciones de reutilizacion del programa COP120.
+"""
+
 import re
 
 MAX_COLUMNAS = 114
@@ -29,7 +76,6 @@ def imprimir_tot_dpt(pdf, num_linea, dpt_clave, dpt_nombre, acum_tot_dpt):
         imprimir_linea(pdf, '', num_linea+5)
     else:
         print("Formato incorrecto")
-
 
 def imprimir_encabezado(pdf, prog_nom, fecha, planta_cve, planta_nombre, 
                         dpt_clave, dpt_nombre, num_hoja):

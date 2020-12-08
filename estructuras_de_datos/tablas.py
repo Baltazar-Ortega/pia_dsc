@@ -1,4 +1,24 @@
-# Tablas
+# -*-*-*-
+"""
+* Programa: tablas
+* Objetivo: Proveer clases para representar la estructura de datos 'Tabla'
+* Autor:    FCFM. GOAB. Gutiérrez Ortega Alberto Baltazar
+* Fecha:    8/12/2020
+"""
+
+# -*-*-*- 
+"""
+* Clase             Función
+* Tabla             Estructura básica de una tabla.
+* Tabla_Productos   Hereda de Tabla. Estructura para Tabla de BD "Productos".
+* Tabla_Tablas      Hereda de Tabla. Estructura para Tabla de BD "Tablas".
+"""
+
+# -*-*-*-
+"""
+* (1) Las tablas nuevas deben de heredar de Tabla.
+* (2) Las tablas nuevas deben crear un formato de registro. 
+"""
 
 class Tabla:
     def __init__(self):

@@ -1,3 +1,33 @@
+# -*-*-*-
+"""
+* Programa: funciones_auxiliares
+* Objetivo: Proveer funciones secundarias al programa COP120
+* Autor:    FCFM. GOAB. Gutiérrez Ortega Alberto Baltazar
+* Fecha:    8/12/2020
+"""
+
+# -*-*-*- 
+"""
+* Import               Función
+* Clase
+* TablaProductos       Hereda de Tabla. Estructura para Tabla de BD 
+*                      "Productos".
+* TablaTablas          Hereda de Tabla. Estructura para Tabla de BD "Tablas".
+* 
+* Proceso              Función
+* procesar_registros:  Retornar lista de registros ya formateados.
+* procesar_registro:   Retorna registro formateado.
+* mal_clasificado:     Retorna booleano para determinar si el orden del 
+*                      registro es adecuado.
+* crear_tabla:         Retorna una tabla de base de datos. La tabla 
+*                      retornada depende de nombre_tabla.
+"""
+
+# -*-*-*-
+"""
+* (1) Utilizar instrucciones de reutilizacion del programa COP120.
+"""
+
 from estructuras_de_datos.tablas import TablaProductos, TablaTablas
 
 def procesar_registros(registros, formato):

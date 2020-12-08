@@ -1,4 +1,26 @@
-# Acumuladores
+# -*-*-*-
+"""
+* Programa: acumuladores
+* Objetivo: Proveer clases para representar la estructura de datos 
+*           'Acumulador'
+* Autor:    FCFM. GOAB. Gutiérrez Ortega Alberto Baltazar
+* Fecha:    8/12/2020
+"""
+
+# -*-*-*- 
+"""
+* Clase         Función
+* Acumulador    Estructura básica de un acumulador.
+* AcumConProd   Hereda de Acumulador. Estructura para Acum.Con.Prod
+* AcumTotDpt    Hereda de Acumulador. Estructura para Acum.Tot.Dpt
+"""
+
+# -*-*-*-
+"""
+* (1) Los acumuladores nuevos deben de heredar de Acumulador.
+* (2) Los acumuladores nuevos deben de inicializar sus valores a cero en
+*     el constructor.
+"""
 
 class Acumulador:
     def generar_valor(self, elementos):

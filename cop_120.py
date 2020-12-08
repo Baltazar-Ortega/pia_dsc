@@ -9,21 +9,55 @@
 
 # -*-*-*- 
 """
-*  Proceso                         Función
-* control:                       Procesar corte.
-* procesa_planta:                Procesar planta. Reiniciar numero de hoja.
-* procesa_departamento:          Procesar departamento. Imprimir total.
-* procesa_producto:              Procesar un producto. Imprimir detalle. 
-* encabezado:                    Imprimir encabezado en reporte.
-* lee_consumo:                   Leer registro de archivo 'consumos'.
-* lee_devolucion:                Leer registro de archivo 'devoluciones'.
-* calcular_reporte_almacen:      Procesar consumos con clave 'RA'.
-*                                Procesar devoluciones.
-* calcular_reporte_produccion:   Procesar consumos con clave 'RP'.
-* obtener_nombre:                Obtener nombre de Planta o Departamento.
-*                                Si no lo tiene, se devuelve un string vacio. 
-* obtener_fecha:                 Obtener fecha de tablas si existe, sino, 
-*                                tomar la del sistema.
+* Import                        Funcion
+* Libreria
+* re                            Módulo de la libreria estandar de python que
+*                               sirve para trabajar con expresiones regulares.    
+* sys                           Módulo de la libreria estandar de python que
+*                               permitirá acceder a los archivos del sistema.   
+* datetime                      Módulo de la libreria estandar de python que
+*                               sirve para manipular fechas. 
+* Clase
+* IdPlaCon                      Hereda de Identidad. Estructura para 
+*                               Id.Pla.Con
+* IdDptCon                      Hereda de Identidad. Estructura para 
+*                               Id.Dpt.Con
+* IdCon                         Hereda de Identidad. Estructura para Id.Con
+* IdDev                         Hereda de Identidad. Estructura para Id.Dev                     
+* AcumConProd                   Hereda de Acumulador. 
+*                               Estructura para Acum.Con.Prod
+* AcumTotDpt                    Hereda de Acumulador. 
+*                               Estructura para Acum.Tot.Dpt                    
+* Proceso                     
+* imprimir_encabezado:          Imprimir encabezado.
+* construir_detalle:            Retorna string con el detalle de producto.
+* imprimir_linea:               Imprime linea en reporte.
+* imprimir_tot_dpt:             Imprimir el total de departamento. 
+* imprimir_lineas_blanco:       Imprimir cierta cantidad de lineas en blanco 
+*                               antes de llegar al máximo. 
+* obtener_cursor:               Retorna cursor de la conexion.    
+* procesar_registro:            Retorna registro formateado.     
+* procesar_registros:           Retornar lista de registros ya formateados.   
+* mal_clasificado:              Retorna booleano para determinar si el orden 
+*                               del registro es adecuado      
+* crear_tabla:                  Retorna una tabla de base de datos. La tabla 
+*                               retornada depende de nombre_tabla.   
+*
+* Proceso                       Función
+* control:                      Procesar corte.
+* procesa_planta:               Procesar planta. Reiniciar numero de hoja.
+* procesa_departamento:         Procesar departamento. Imprimir total.
+* procesa_producto:             Procesar un producto. Imprimir detalle. 
+* encabezado:                   Imprimir encabezado en reporte.
+* lee_consumo:                  Leer registro de archivo 'consumos'.
+* lee_devolucion:               Leer registro de archivo 'devoluciones'.
+* calcular_reporte_almacen:     Procesar consumos con clave 'RA'.
+*                               Procesar devoluciones.
+* calcular_reporte_produccion:  Procesar consumos con clave 'RP'.
+* obtener_nombre:               Obtener nombre de Planta o Departamento.
+*                               Si no lo tiene, se devuelve un string vacio. 
+* obtener_fecha:                Obtener fecha de tablas si existe, sino, 
+*                               tomar la del sistema.
 """
 
 # -*-*-*-
@@ -33,11 +67,13 @@
 * (3) El límite de una línea es de 79 caracteres
 * (4) Los 'imports' de distintos modulos deben estar en líneas separadas
 * (5) Si una sentencia de 'import' necesita más espacio, utilizar paréntesis
-* (6) Cualquier sentencia 'return' donde no se tenga que retornar un
+* (6) Orden de 'imports': 1. módulos de libreria estandar de python, 
+*     2. paquetes de terceros, 3. modulos locales.
+* (7) Cualquier sentencia 'return' donde no se tenga que retornar un
 *     valor, explícitamente debe retornar 'None'
-* (7) Usar "\" para romper una operación en las líneas necesarias cuando no se
+* (8) Usar "\" para romper una operación en las líneas necesarias cuando no se
 *     cuente con el sufiente espacio para escribirla en una linea.
-* (8) Añadir como última línea en el programa: # FIN DE PROGRAMA.
+* (9) Añadir como última línea en el programa: # FIN DE PROGRAMA.
 """
 
 import re

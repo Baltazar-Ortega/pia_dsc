@@ -1,3 +1,26 @@
+# -*-*-*-
+"""
+* Programa: config
+* Objetivo: Obtener parametros de conexion a BD desde el archivo bd.ini
+* Autor:    FCFM. GOAB. Gutiérrez Ortega Alberto Baltazar
+* Fecha:    8/12/2020
+"""
+
+# -*-*-*- 
+"""
+* Import          Funcion
+* Libreria
+* ConfigParser    Clase auxiliar para parsear archivos con cierto formato.
+*  
+* Proceso         Función
+* configuracion:  Retorna parametros para la conexión a la BD postgresql.
+"""
+
+# -*-*-*-
+"""
+* (1) Utilizar instrucciones de reutilizacion del programa COP120.
+"""
+
 from configparser import ConfigParser
 
 def configuracion(nombre_archivo='base_de_datos/bd.ini', 

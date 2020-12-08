@@ -1,4 +1,25 @@
-# Identidades
+# -*-*-*-
+"""
+* Programa: identidades
+* Objetivo: Proveer clases para representar la estructura de datos 'Identidad'
+* Autor:    FCFM. GOAB. Gutiérrez Ortega Alberto Baltazar
+* Fecha:    8/12/2020
+"""
+
+# -*-*-*- 
+"""
+* Clase       Función
+* Identidad   Estructura básica de una identidad.
+* IdPlaCon    Hereda de Identidad. Estructura para Id.Pla.Con
+* IdDptCon    Hereda de Identidad. Estructura para Id.Dpt.Con
+* IdCon       Hereda de Identidad. Estructura para Id.Con
+* IdDev       Hereda de Identidad. Estructura para Id.Dev
+"""
+
+# -*-*-*-
+"""
+* (1) Las identidades nuevas deben de heredar de Identidad.
+"""
 
 class Identidad:
     def __init__(self, tipo):
