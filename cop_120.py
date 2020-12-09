@@ -443,6 +443,6 @@ if __name__ == "__main__":
     # Si SI es 1, cerrar archivos y reporte
     arch_con.close()
     arch_dev.close()
-    pdf.output('reporte_final.pdf', 'F')
+    pdf.output('reporte.pdf', 'F')
 
 # FIN DE PROGRAMA.
