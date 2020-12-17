@@ -25,3 +25,7 @@ Se crearán las tablas con registros de prueba
 Asegurarse de cambiar la password
 ### 9. Ejecutar programa
 <code>$ python cop_120.py</code>
+
+## Screenshot
+![image](https://user-images.githubusercontent.com/30305964/102521781-f2392e00-405a-11eb-975c-6f041d253ecf.png)
+
